@@ -1,3 +1,5 @@
+import json
+from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse, SavePlaylistRequest
 from .tools import sp
@@ -6,19 +8,33 @@ from .graph import agent
 router = APIRouter()
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest):
+async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     # pass input to the LangGraph agent
     result = agent.invoke(
         {"messages": [("user", request.message)]},
         config={"configurable": {"thread_id": request.session_id}}
     )
     
-    # extract the AI's final text response
+    # extract the AI's final commentary on the playlist
     ai_message = result["messages"][-1].content
-    return ChatResponse(response=ai_message)
+
+    # extract the playlist data by looking backwards through the messages for the most
+    # recent ToolMessage
+    extracted_playlist = []
+    for msg in reversed(result["messages"]):
+        if isinstance(msg, ToolMessage):
+            try:
+                data = json.loads(msg.content)
+                if isinstance(data, list) and len(data) > 0:
+                    extracted_playlist = data
+                    break # we've found the latest results
+            except:
+                continue # if the tool returned an error string, json.loads might fail. ignore it.
+
+    return ChatResponse(commentary=ai_message, playlist=extracted_playlist)
 
 @router.post("/save-playlist")
-async def save_playlist(payload: SavePlaylistRequest):
+async def save_playlist(payload: SavePlaylistRequest) -> object:
     """
     Endpoint for the frontend to save the final playlist. Not used by LLM agent
     
@@ -26,9 +42,7 @@ async def save_playlist(payload: SavePlaylistRequest):
     :type payload: SavePlaylistRequest
     """
     try:
-
         user_id = sp.current_user()["id"]
-
         # create empty playlist
         playlist = sp.user_playlist_create(
             user=user_id,

@@ -1,5 +1,6 @@
 # this file defines the tools that the llm is able to use, such as searching for music
 from langchain_core.tools import tool
+import json
 import spotipy
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
@@ -11,7 +12,7 @@ scope = "playlist-modify-public" #determines type of access we have to a user's 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 
 @tool
-def search_spotify(query: str) -> list:
+def search_spotify(query: str) -> json:
     """ 
     Searches Spotify for music based on the user's query and returns a list of track lists,
     where each track list contains three elements: track_name, artist_name, track_uri, img_url
@@ -36,7 +37,7 @@ def search_spotify(query: str) -> list:
         track_info = [track_name, artist_name, track_uri, img_url]
         cleaned_results.append(track_info)
 
-    return cleaned_results 
+    return json.dumps(cleaned_results) 
 
 # # this code will be executed once the user clicks the "save playlist" button
 # def save_playlist(user: str, name: str, track_uris: list) -> dict:

@@ -41,11 +41,11 @@ def build_agent():
         model="gemini-2.5-flash",
         temperature=0.3 #play around with this val. -> 1 is TOTALLY random, -> 0 is NO randomness
         ) #initialize the gemini model
-    tools = [search_spotify, create_playlist, add_track] #define the tools list
+    tools = [search_spotify] #define the tools list
     return create_agent(
         model=llm, 
         tools=tools,
         system_prompt=SYSTEM_PROMPT
         ) # create the agent and compile the graph
 
-#agent = build_agent()
+agent = build_agent()
