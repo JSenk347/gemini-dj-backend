@@ -1,7 +1,7 @@
-
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
-from langchain.agents import create_agent
+#from langchain.agents import create_agent
+from langgraph.prebuilt import create_react_agent #depricated yet stable. change to above line when needed
 from langchain_core.output_parsers import StrOutputParser
 from .tools import search_spotify, create_playlist, add_track
 from dotenv import load_dotenv
@@ -42,10 +42,15 @@ def build_agent():
         temperature=0.3 #play around with this val. -> 1 is TOTALLY random, -> 0 is NO randomness
         ) #initialize the gemini model
     tools = [search_spotify] #define the tools list
-    return create_agent(
-        model=llm, 
+    # return create_agent(
+    #     model=llm, 
+    #     tools=tools,
+    #     system_prompt=SYSTEM_PROMPT
+    #     ) # create the agent and compile the graph
+    return create_react_agent(
+        model=llm,
         tools=tools,
-        system_prompt=SYSTEM_PROMPT
-        ) # create the agent and compile the graph
+        state_modifier=SYSTEM_PROMPT
+        )
 
 agent = build_agent()
