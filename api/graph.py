@@ -3,7 +3,7 @@ from langchain_core.prompts import PromptTemplate
 #from langchain.agents import create_agent
 from langgraph.prebuilt import create_react_agent #depricated yet stable. change to above line when needed
 from langchain_core.output_parsers import StrOutputParser
-from .tools import search_spotify, create_playlist, add_track
+from .tools import search_spotify
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -51,6 +51,6 @@ def build_agent():
         model=llm,
         tools=tools,
         state_modifier=SYSTEM_PROMPT
-        )
+        ) # create_react_agent is deprecated, yet stable. update to above line when needed
 
 agent = build_agent()
