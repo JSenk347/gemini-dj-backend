@@ -50,7 +50,7 @@ def build_agent():
     return create_react_agent(
         model=llm,
         tools=tools,
-        state_modifier=SYSTEM_PROMPT
+        system_prompt=SYSTEM_PROMPT
         ) # create_react_agent is deprecated, yet stable. update to above line when needed
 
 agent = build_agent()
