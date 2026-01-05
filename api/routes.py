@@ -16,7 +16,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
     try:
         # pass input to the LangGraph agent
-        result = await agent.invoke(
+        result = await agent.ainvoke(
             {"messages": [
                 ("user", request.message),
                 ("system", SYSTEM_PROMPT) # in future, will be removed and will add a system_prompt arg in build_agent
