@@ -13,7 +13,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     result = agent.invoke(
         {"messages": [
             ("user", request.message),
-            ("system", SYSTEM_PROMPT)
+            ("system", SYSTEM_PROMPT) # in future, will be removed and will add a system_prompt arg in build_agent
             ]},
         config={"configurable": {"thread_id": request.session_id}}
     )
