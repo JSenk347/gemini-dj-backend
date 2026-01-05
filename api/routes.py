@@ -3,7 +3,7 @@ from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse, SavePlaylistRequest
 from .tools import sp
-from .graph import agent
+from .graph import agent, SYSTEM_PROMPT
 
 router = APIRouter()
 
@@ -11,7 +11,10 @@ router = APIRouter()
 async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     # pass input to the LangGraph agent
     result = agent.invoke(
-        {"messages": [("user", request.message)]},
+        {"messages": [
+            ("user", request.message),
+            ("system", SYSTEM_PROMPT)
+            ]},
         config={"configurable": {"thread_id": request.session_id}}
     )
     

@@ -9,19 +9,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# SYSTEM_PROMPT = """
-# You are an expert DJ and playlist curator. Your goal is to build the perfect playlist based on the user's request.
+SYSTEM_PROMPT = """
+You are an expert DJ and playlist curator. Your goal is to build the perfect playlist based on the user's request.
 
-# RULES FOR USING TOOLS:
-# 1. NEVER just search once and dump the results. 
-# 2. If a request has multiple parts (e.g., "Sad songs and 80s pop"), you MUST perform separate searches for each part.
-# 3. After searching, READ the results and hand-pick only the songs that truly fit the vibe.
-# 4. If a search returns irrelevant results, search again with a different query.
-# 5. When you select songs for the final playlist, you MUST retain the Spotify URI for each song so we can save it later.
-# 6. You must find a minimum of 5 songs unless the user asks for fewer.
+RULES FOR USING TOOLS:
+1. NEVER just search once and dump the results. 
+2. If a request has multiple parts (e.g., "Sad songs and 80s pop"), you MUST perform separate searches for each part.
+3. After searching, READ the results and hand-pick only the songs that truly fit the vibe.
+4. If a search returns irrelevant results, search again with a different query.
+5. When you select songs for the final playlist, you MUST retain the Spotify URI for each song so we can save it later.
+6. You must find a minimum of 5 songs unless the user asks for fewer.
 
-# Your final output should be a brief, friendly summary of the songs you chose and why.
-# """ USE IN MODERN VERSION
+Your final output should be a brief, friendly summary of the songs you chose and why.
+""" #USE IN MODERN VERSION
 
 # def generate_pet_name(animal_type: str) -> str:
 #     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
@@ -43,24 +43,7 @@ def build_agent():
         temperature=0.3 #play around with this val. -> 1 is TOTALLY random, -> 0 is NO randomness
         ) #initialize the gemini model
     tools = [search_spotify] #define the tools list
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", 
-            """
-            You are an expert DJ and playlist curator. Your goal is to build the perfect playlist based on the user's request.
 
-            RULES FOR USING TOOLS:
-            1. NEVER just search once and dump the results. 
-            2. If a request has multiple parts (e.g., "Sad songs and 80s pop"), you MUST perform separate searches for each part.
-            3. After searching, READ the results and hand-pick only the songs that truly fit the vibe.
-            4. If a search returns irrelevant results, search again with a different query.
-            5. When you select songs for the final playlist, you MUST retain the Spotify URI for each song so we can save it later.
-            6. You must find a minimum of 5 songs unless the user asks for fewer.
-
-            Your final output should be a brief, friendly summary of the songs you chose and why.
-            """
-         )
-    ])
-    system_message = prompt_template.format_messages()[0]
     # return create_agent(
     #     model=llm, 
     #     tools=tools,
@@ -69,7 +52,6 @@ def build_agent():
     return create_react_agent(
         model=llm,
         tools=tools,
-        state_schema=system_message
         ) # create_react_agent is deprecated, yet stable. update to above line when needed
 
 agent = build_agent()
