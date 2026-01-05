@@ -67,9 +67,9 @@ def build_agent():
     #     system_prompt=SYSTEM_PROMPT
     #     ) # create the agent and compile the graph
     return create_react_agent(
-        model=llm,
-        tools=tools,
-        system_message=system_message
+        llm,
+        tools,
+        system_message
         ) # create_react_agent is deprecated, yet stable. update to above line when needed
 
 agent = build_agent()
