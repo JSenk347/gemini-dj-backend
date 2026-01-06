@@ -1,5 +1,7 @@
 import json
 import logging
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse, SavePlaylistRequest
@@ -59,6 +61,7 @@ async def save_playlist(payload: SavePlaylistRequest) -> object:
     :type payload: SavePlaylistRequest
     """
     try:
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-modify-public"))
         user_id = sp.current_user()["id"] # will replace with payload.user_id
         # create empty playlist
         playlist = sp.user_playlist_create(
