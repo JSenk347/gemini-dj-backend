@@ -11,6 +11,18 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def extract_message(raw_content: str | list) -> str:
+    if isinstance(raw_content, list):
+        #join blocks that are of type "text"
+        ai_message = "".join(
+            block.get("text", "")
+            for block in raw_content
+            if isinstance(block, dict) and block.get("type") == "text"
+        )
+        return ai_message
+    else:
+        return str(raw_content)
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     logger.info(f"Starting chat request for session: {request.session_id}")
@@ -28,8 +40,10 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         if not result.get("messages"):
             raise ValueError("Agent returned no messages.")
 
-        # extract the AI's final commentary on the playlist
-        ai_message = result["messages"][-1].content
+        last_message = result["messages"][-1]
+        raw_content = last_message.content
+
+        ai_message = extract_message(raw_content)
 
         # extract the playlist data by looking backwards through the messages for the most
         # recent ToolMessage
