@@ -16,7 +16,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
     try:
         # pass input to the LangGraph agent
-        result = await agent.ainvoke(
+        result = await agent.ainvoke( # ainvoke is CRUCIAL as it is the asynchronous way to invoke the agent
             {"messages": [
                 ("user", request.message),
                 ("system", SYSTEM_PROMPT) # in future, will be removed and will add a system_prompt arg in build_agent
@@ -59,7 +59,7 @@ async def save_playlist(payload: SavePlaylistRequest) -> object:
     :type payload: SavePlaylistRequest
     """
     try:
-        user_id = sp.current_user()["id"]
+        user_id = sp.current_user()["id"] # will replace with payload.user_id
         # create empty playlist
         playlist = sp.user_playlist_create(
             user=user_id,

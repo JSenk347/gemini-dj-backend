@@ -2,14 +2,16 @@
 from langchain_core.tools import tool
 import json
 import spotipy
+import os
 from dotenv import load_dotenv
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
+from spotipy.oauth2 import SpotifyClientCredentials #Authenticatest the SERVER. All that's needed for search functionality.
 
 load_dotenv()
 
-scope = "playlist-modify-public" #determines type of access we have to a user's account
+#scope = "playlist-modify-public" #determines type of access we have to a user's account
 
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+#sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 
 @tool
 def search_spotify(query: str) -> json:
@@ -18,12 +20,19 @@ def search_spotify(query: str) -> json:
     where each track list contains three elements: track_name, artist_name, track_uri, img_url
     """ #comment required so that the LLM knows what the tool does
 
+    # auth_manager setup for PUBLIC data, only requiring client_id and client_secret
+    auth_manager = SpotifyClientCredentials(
+        client_id=os.environ.get("SPOTIPY_CLIENT_ID"),
+        client_secret=os.environ.get("SPOTIPY_CLIENT_SECRET")
+    )
+
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+
     results = sp.search(q=query, limit=10, type=["track"]) #returns a dictionary
 
     cleaned_results = []
 
     tracks_list = results.get('tracks', {}).get('items', [])
-    
 
     for item in tracks_list:
         track_name = item.get('name', 'Unknown Track')
