@@ -20,7 +20,7 @@ RULES FOR USING TOOLS:
 5. When you select songs for the final playlist, you MUST retain the Spotify URI for each song so we can save it later.
 6. You must find a minimum of 10 songs unless the user asks for fewer.
 
-Your final output should be a brief, friendly summary of the songs you chose and why.
+Your final output should include a friendly summary of the songs you chose and why.
 """ #USE IN MODERN VERSION
 
 # def generate_pet_name(animal_type: str) -> str:
@@ -39,7 +39,7 @@ Your final output should be a brief, friendly summary of the songs you chose and
 
 def build_agent():
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         temperature=0.3 #play around with this val. -> 1 is TOTALLY random, -> 0 is NO randomness
         ) #initialize the gemini model
     tools = [search_spotify] #define the tools list
