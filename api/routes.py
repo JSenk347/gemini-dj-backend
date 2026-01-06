@@ -43,7 +43,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
                         break # we've found the latest results
                 except:
                     continue # if the tool returned an error string, json.loads might fail. ignore it.
-
+        print(ai_message)            
         return ChatResponse(commentary=ai_message, playlist=extracted_playlist)
     
     except Exception as e:
