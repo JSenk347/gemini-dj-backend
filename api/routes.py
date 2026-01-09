@@ -2,9 +2,12 @@ import json
 import logging
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
+import spotipy.oauth2.SpotifyAuthBase
+import spotipy.util as util
+import os
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
-from .models import ChatRequest, ChatResponse, SavePlaylistRequest
+from .models import ChatRequest, ChatResponse, AuthURLRequest
 from .graph import agent, SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -64,6 +67,20 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         logger.error(f"Error in chat_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/auth_url")
+async def serve_auth_url(payload: AuthURLRequest):
+    sp_oauth = SpotifyOAuth(
+        client_id= os.environ.get("SPOTIPY_CLIENT_ID"),
+        client_secret= os.environ.get("SPOTIPY_CLIENT_SECRET"),
+        scope='user-read-private playlist-modify-public',
+        redirect_uri= payload.redirect_uri
+    )
+
+    try:
+        return sp_oauth.get_authorize_url()
+    except Exception as e:
+        logger.error(f"Error in auth_uri_endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/save-playlist")
 async def save_playlist(payload: SavePlaylistRequest) -> object:

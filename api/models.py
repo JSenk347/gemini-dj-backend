@@ -14,3 +14,6 @@ class SavePlaylistRequest(BaseModel):
     name: str
     user_id: str #the user's spotify id
     track_uris: List[str] # list of track uris as strings, sent by React
+
+class AuthURLRequest(BaseModel):
+    redirect_uri: str # the URI for the spotify login window
