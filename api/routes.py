@@ -82,7 +82,7 @@ async def serve_token(payload: AccessTokenRequest):
 
     try:
         #does not check if access token already exists to simplify logout->login
-        return {"access_token" : sp_oauth.get_access_token(payload.code, check_cache=False)} 
+        return {"access_token" : sp_oauth.get_access_token(code=payload.code, as_dict=False, check_cache=False)} 
     except Exception as e:
         logger.error(f"Error in token_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
