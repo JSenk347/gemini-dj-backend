@@ -5,7 +5,7 @@ from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 import os
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
-from .models import ChatRequest, ChatResponse, AuthURLRequest
+from .models import ChatRequest, ChatResponse, AuthURLRequest, SavePlaylistRequest
 from .graph import agent, SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
