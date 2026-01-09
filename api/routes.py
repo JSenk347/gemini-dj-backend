@@ -5,8 +5,9 @@ from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 import os
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
-from .models import ChatRequest, ChatResponse, AuthURLRequest, SavePlaylistRequest
+from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest
 from .graph import agent, SYSTEM_PROMPT
+from .utils import get_spotify_oauth
 
 logger = logging.getLogger(__name__)
 
@@ -67,17 +68,23 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
 @router.post("/auth_url")
 async def serve_auth_url(payload: AuthURLRequest) -> object:
-    sp_oauth = SpotifyOAuth(
-        client_id= os.environ.get("SPOTIPY_CLIENT_ID"),
-        client_secret= os.environ.get("SPOTIPY_CLIENT_SECRET"),
-        scope='user-read-private playlist-modify-public',
-        redirect_uri= payload.redirect_uri
-    )
+    sp_oauth = get_spotify_oauth(payload.redirect_uri)
 
     try:
         return {"auth_url": sp_oauth.get_authorize_url()}
     except Exception as e:
         logger.error(f"Error in auth_uri_endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/token")
+async def serve_token(payload: AccessTokenRequest):
+    sp_oauth = get_spotify_oauth(payload.redirect_uri)
+
+    try:
+        #does not check if access token already exists to simplify logout->login
+        return {"access_token" : sp_oauth.get_access_token(payload.code, check_cache=False)} 
+    except Exception as e:
+        logger.error(f"Error in token_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/save-playlist")

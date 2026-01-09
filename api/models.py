@@ -17,3 +17,7 @@ class SavePlaylistRequest(BaseModel):
 
 class AuthURLRequest(BaseModel):
     redirect_uri: str # the URI for the spotify login window
+
+class AccessTokenRequest(BaseModel):
+    code: str # the code given by spotify upon user auth success
+    redirect_uri: str
