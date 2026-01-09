@@ -11,7 +11,7 @@ app = FastAPI(title="Gemini DJ API")
 #CORS setup that allows the front-end to talk to the back-end
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'], # currently allows all origins, but must CHANGE to front-end url
+    allow_origins=['http://localhost:5173", "https://jsenkcc-gemini-dj-frontend.hf.space'], 
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*']

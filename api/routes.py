@@ -66,7 +66,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/auth_url")
-async def serve_auth_url(payload: AuthURLRequest) -> str:
+async def serve_auth_url(payload: AuthURLRequest) -> object:
     sp_oauth = SpotifyOAuth(
         client_id= os.environ.get("SPOTIPY_CLIENT_ID"),
         client_secret= os.environ.get("SPOTIPY_CLIENT_SECRET"),
@@ -75,7 +75,7 @@ async def serve_auth_url(payload: AuthURLRequest) -> str:
     )
 
     try:
-        return sp_oauth.get_authorize_url()
+        return {"auth_url": sp_oauth.get_authorize_url()}
     except Exception as e:
         logger.error(f"Error in auth_uri_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
