@@ -2,8 +2,6 @@ import json
 import logging
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
-import spotipy.oauth2.SpotifyAuthBase
-import spotipy.util as util
 import os
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
