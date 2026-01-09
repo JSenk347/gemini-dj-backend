@@ -66,7 +66,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/auth_url")
-async def serve_auth_url(payload: AuthURLRequest):
+async def serve_auth_url(payload: AuthURLRequest) -> str:
     sp_oauth = SpotifyOAuth(
         client_id= os.environ.get("SPOTIPY_CLIENT_ID"),
         client_secret= os.environ.get("SPOTIPY_CLIENT_SECRET"),
