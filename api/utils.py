@@ -1,4 +1,5 @@
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
+import spotipy
 import os
 
 def get_spotify_oauth(redirect_uri: str) -> SpotifyOAuth:
@@ -14,6 +15,9 @@ def get_spotify_oauth(redirect_uri: str) -> SpotifyOAuth:
         # in production, might also want to set open_browser=False
         # and cache_handler=... to prevent writing .cache files to disk
     )
+
+def get_client(oauth_manager: SpotifyOAuth) -> spotipy.client.Spotify:
+    return spotipy.Spotify(auth_manager=oauth_manager)
 
 def extract_message(raw_content: str | list) -> str:
     if isinstance(raw_content, list):

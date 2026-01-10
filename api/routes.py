@@ -1,13 +1,12 @@
 import json
 import logging
-#import spotipy
+import spotipy
 #from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
-import os
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
-from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest#, SavePlaylistRequest
+from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest, UserDataRequest
 from .graph import agent, SYSTEM_PROMPT
-from .utils import get_spotify_oauth, extract_message
+from .utils import get_spotify_oauth, extract_message, get_client
 
 logger = logging.getLogger(__name__)
 
@@ -75,35 +74,60 @@ async def serve_token(payload: AccessTokenRequest):
         logger.error(f"Error in token_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.post("/save-playlist")
-# async def save_playlist(payload: SavePlaylistRequest) -> object:
-#     """
-#     Endpoint for the frontend to save the final playlist. Not used by LLM agent
+@router.post("/user-data")
+async def serve_user_data(payload: UserDataRequest):
+    sp = spotipy.Spotify(auth=payload.auth_token)
     
-#     :param payload: The data contract that describes a playlist, sent by the frontend.
-#     :type payload: SavePlaylistRequest
-#     """
-#     try:
-#         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-modify-public"))
-#         user_id = sp.current_user()["id"] # will replace with payload.user_id
-#         # create empty playlist
-#         playlist = sp.user_playlist_create(
-#             user=user_id,
-#             name=payload.name,
-#             public=True,
-#             description="Created by Gemini DJ"
-#             )
-#         # add the tracks to the playlist
-#         if payload.track_uris:
-#             sp.playlist_add_items(
-#                 playlist_id=playlist["id"],
-#                 items=payload.track_uris
-#             )
+    try:
+        user_data = sp.current_user()
 
-#         return {
-#             "status":"success",
-#             "playlist_id":playlist["id"],
-#             "url":playlist["external_urls"]["spotify"]
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+        profile_image = None
+        if user_data.get("images") and len(user_data["imaged"]) > 0:
+            profile_image = user_data["images"][0]["url"]
+
+        return {
+            "display_name": user_data.get("display_name"),
+            "id": user_data.get("id"),
+            "display_img": profile_image,
+            "uri": user_data.get("uri")
+        }
+    except spotipy.exceptions.SpotifyException as e:
+        logger.error(f"Spotify API error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except Exception as e:
+        logger.error(f"Error in user_data_endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.post("/save-playlist")
+async def save_playlist(payload: SavePlaylistRequest) -> object:
+    """
+    Endpoint for the frontend to save the final playlist. Not used by LLM agent
+    
+    :param payload: The data contract that describes a playlist, sent by the frontend.
+    :type payload: SavePlaylistRequest
+    """
+    try:
+        sp = get_spotify_oauth(payload.redirect_uri)
+        user_id = sp.current_user()["id"] # will replace with payload.user_id
+        # create empty playlist
+        playlist = sp.user_playlist_create(
+            user=user_id,
+            name=payload.name,
+            public=True,
+            description="Created by Gemini DJ"
+            )
+        # add the tracks to the playlist
+        if payload.track_uris:
+            sp.playlist_add_items(
+                playlist_id=playlist["id"],
+                items=payload.track_uris
+            )
+
+        return {
+            "status":"success",
+            "playlist_id":playlist["id"],
+            "url":playlist["external_urls"]["spotify"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
