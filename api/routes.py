@@ -6,7 +6,7 @@ from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest, UserDataRequest
 from .graph import agent, SYSTEM_PROMPT
-from .utils import get_spotify_oauth, extract_message, get_client
+from .utils import get_spotify_oauth, extract_message
 
 logger = logging.getLogger(__name__)
 
