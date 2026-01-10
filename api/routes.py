@@ -82,7 +82,7 @@ async def serve_user_data(payload: UserDataRequest):
         user_data = sp.current_user()
 
         profile_image = None
-        if user_data.get("images") and len(user_data["imaged"]) > 0:
+        if user_data.get("images") and len(user_data["images"]) > 0:
             profile_image = user_data["images"][0]["url"]
 
         return {
