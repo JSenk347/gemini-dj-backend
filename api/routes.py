@@ -74,7 +74,7 @@ async def serve_token(payload: AccessTokenRequest):
         logger.error(f"Error in token_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/user-data")
+@router.post("/user_data")
 async def serve_user_data(payload: UserDataRequest):
     sp = spotipy.Spotify(auth=payload.auth_token)
     
@@ -99,7 +99,7 @@ async def serve_user_data(payload: UserDataRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.post("/save-playlist")
+@router.post("/save_playlist")
 async def save_playlist(payload: SavePlaylistRequest) -> object:
     """
     Endpoint for the frontend to save the final playlist. Not used by LLM agent
