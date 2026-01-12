@@ -13,8 +13,8 @@ class ChatResponse(BaseModel):
 class SavePlaylistRequest(BaseModel):
     name: str
     user_id: str
+    auth_token: str
     track_uris: List[str] # list of track uris as strings, sent by React
-    redirect_uri: str 
 
 class AuthURLRequest(BaseModel):
     redirect_uri: str # the URI for the spotify login window

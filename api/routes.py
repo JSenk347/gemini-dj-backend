@@ -115,15 +115,15 @@ def save_playlist(payload: SavePlaylistRequest) -> object:
     :type payload: SavePlaylistRequest
     """
     try:
-        sp = get_spotify_oauth(payload.redirect_uri)
-        user_id = sp.current_user()["id"] # will replace with payload.user_id
-        # create empty playlist
+        sp = spotipy.Spotify(auth=payload.auth_token)
+        user_id = payload.user_id
+       
         playlist = sp.user_playlist_create(
             user=user_id,
             name=payload.name,
             public=True,
             description="Created by Gemini DJ"
-            )
+        )
         # add the tracks to the playlist
         if payload.track_uris:
             sp.playlist_add_items(
@@ -133,7 +133,6 @@ def save_playlist(payload: SavePlaylistRequest) -> object:
 
         return {
             "status":"success",
-            "playlist_id":playlist["id"],
             "url":playlist["external_urls"]["spotify"]
         }
     except Exception as e:
