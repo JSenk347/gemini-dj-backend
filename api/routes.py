@@ -1,7 +1,8 @@
 import json
 import logging
 import spotipy
-#from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
+import os
+from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest, UserDataRequest
@@ -55,10 +56,15 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
 @router.post("/auth_url")
 def serve_auth_url(payload: AuthURLRequest) -> object:
-    sp_oauth = get_spotify_oauth(payload.redirect_uri)
-
+    sp_oauth = SpotifyOAuth(
+        client_id=os.environ.get("SPOTIPY_CLIENT_ID"),
+        client_secret=os.environ.get("SPOTIPY_CLIENT_SECRET"),
+        scope='user-read-private playlist-modify-public',
+        redirect_uri=payload.redirect_uri,
+        show_dialog=True # so that the user is always redirected to the login page
+    )
     try:
-        url = sp_oauth.get_authorize_url(show_dialog=True) # show dialog brings user to auth window each time
+        url = sp_oauth.get_authorize_url() # show dialog brings user to auth window each time
         return {"auth_url": url}
     except Exception as e:
         logger.error(f"Error in auth_uri_endpoint: {str(e)}", exc_info=True)
