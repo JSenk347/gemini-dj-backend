@@ -54,7 +54,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/auth_url")
-async def serve_auth_url(payload: AuthURLRequest) -> object:
+def serve_auth_url(payload: AuthURLRequest) -> object:
     sp_oauth = get_spotify_oauth(payload.redirect_uri)
 
     try:
@@ -64,7 +64,7 @@ async def serve_auth_url(payload: AuthURLRequest) -> object:
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/token")
-async def serve_token(payload: AccessTokenRequest):
+def serve_token(payload: AccessTokenRequest):
     sp_oauth = get_spotify_oauth(payload.redirect_uri)
 
     try:
@@ -75,7 +75,7 @@ async def serve_token(payload: AccessTokenRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/user_data")
-async def serve_user_data(payload: UserDataRequest):
+def serve_user_data(payload: UserDataRequest):
     sp = spotipy.Spotify(auth=payload.auth_token)
     
     try:
@@ -100,7 +100,7 @@ async def serve_user_data(payload: UserDataRequest):
     
 
 @router.post("/save_playlist")
-async def save_playlist(payload: SavePlaylistRequest) -> object:
+def save_playlist(payload: SavePlaylistRequest) -> object:
     """
     Endpoint for the frontend to save the final playlist. Not used by LLM agent
     
