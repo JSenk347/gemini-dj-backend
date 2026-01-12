@@ -58,7 +58,7 @@ def serve_auth_url(payload: AuthURLRequest) -> object:
     sp_oauth = get_spotify_oauth(payload.redirect_uri)
 
     try:
-        url = sp_oauth.get_authorize_url(show_dialog=True)
+        url = sp_oauth.get_authorize_url(show_dialog=True) # show dialog brings user to auth window each time
         return {"auth_url": url}
     except Exception as e:
         logger.error(f"Error in auth_uri_endpoint: {str(e)}", exc_info=True)
