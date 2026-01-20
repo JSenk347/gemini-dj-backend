@@ -3,56 +3,94 @@ import logging
 import spotipy
 import os
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
+from spotipy import SpotifyClientCredentials #for server-side searching
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
+from typing import Dict
+
 from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest, UserDataRequest
-from .graph import agent, SYSTEM_PROMPT
+from .graph import build_agent, SYSTEM_PROMPT
 from .utils import get_spotify_oauth, extract_message
+from .playlist import PlaylistSession
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
+
+active_sessions: Dict[str, PlaylistSession] = {}
+# generic spotify client for agent use
+server_sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
+
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     logger.info(f"Starting chat request for session: {request.session_id}")
 
     try:
-        # pass input to the LangGraph agent
-        result = await agent.ainvoke( # ainvoke is CRUCIAL as it is the asynchronous way to invoke the agent
+        if request.session_id not in active_sessions:
+            logger.info(f"Creating new PlaylistSession for {request.session_id}")
+            active_sessions[request.session_id] = PlaylistSession(sp_client=server_sp)
+
+        current_session = active_sessions[request.session_id]
+        agent = build_agent(current_session)
+
+        result = await agent.ainvoke(
             {"messages": [
                 ("user", request.message),
-                ("system", SYSTEM_PROMPT) # in future, will be removed and will add a system_prompt arg in build_agent
-                ]},
+                ("system", SYSTEM_PROMPT)
+            ]},
             config={"configurable": {"thread_id": request.session_id}}
         )
-    
+
         if not result.get("messages"):
             raise ValueError("Agent returned no messages.")
+        
+        ai_message = result.get("messages")
 
-        last_message = result["messages"][-1]
-        raw_content = last_message.content
+        current_tracks = current_session.current_tracks
 
-        ai_message = extract_message(raw_content)
+        logger.info(f"Current tracks for session: {len(current_tracks)}")
 
-        # extract the playlist data by looking backwards through the messages for the most
-        # recent ToolMessage
-        extracted_playlist = []
-        for msg in reversed(result["messages"]):
-            if isinstance(msg, ToolMessage):
-                try:
-                    data = json.loads(msg.content)
-                    if isinstance(data, list) and len(data) > 0:
-                        extracted_playlist = data
-                        break # we've found the latest results
-                except:
-                    continue # if the tool returned an error string, json.loads might fail. ignore it.
-        print(ai_message)            
-        return ChatResponse(commentary=ai_message, playlist=extracted_playlist)
-    
+        return ChatResponse(commentary=ai_message, playlist=current_tracks)
     except Exception as e:
         logger.error(f"Error in chat_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+    # try:
+    #     # pass input to the LangGraph agent
+    #     result = await agent.ainvoke( # ainvoke is CRUCIAL as it is the asynchronous way to invoke the agent
+    #         {"messages": [
+    #             ("user", request.message),
+    #             ("system", SYSTEM_PROMPT) # in future, will be removed and will add a system_prompt arg in build_agent
+    #             ]},
+    #         config={"configurable": {"thread_id": request.session_id}}
+    #     )
+    
+    #     if not result.get("messages"):
+    #         raise ValueError("Agent returned no messages.")
+
+    #     last_message = result["messages"][-1]
+    #     raw_content = last_message.content
+
+    #     ai_message = extract_message(raw_content)
+
+    #     # extract the playlist data by looking backwards through the messages for the most
+    #     # recent ToolMessage
+    #     extracted_playlist = []
+    #     for msg in reversed(result["messages"]):
+    #         if isinstance(msg, ToolMessage):
+    #             try:
+    #                 data = json.loads(msg.content)
+    #                 if isinstance(data, list) and len(data) > 0:
+    #                     extracted_playlist = data
+    #                     break # we've found the latest results
+    #             except:
+    #                 continue # if the tool returned an error string, json.loads might fail. ignore it.
+    #     print(ai_message)            
+    #     return ChatResponse(commentary=ai_message, playlist=extracted_playlist)
+    
+    # except Exception as e:
+    #     logger.error(f"Error in chat_endpoint: {str(e)}", exc_info=True)
+    #     raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/auth_url")
 def serve_auth_url(payload: AuthURLRequest) -> object:

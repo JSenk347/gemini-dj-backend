@@ -6,12 +6,16 @@ import os
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 from spotipy.oauth2 import SpotifyClientCredentials #Authenticatest the SERVER. All that's needed for search functionality.
+from .playlist import PlaylistSession
 
 load_dotenv()
 
-#scope = "playlist-modify-public" #determines type of access we have to a user's account
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
+    client_id=os.environ.get("SPOTIPY_CLIENT_ID"),
+    client_secret=os.environ.get("SPOTIPY_CLIENT_SECRET")
+))
 
-#sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+playlist = PlaylistSession(sp_client=sp)
 
 @tool
 def search_spotify(query: str) -> json:
@@ -48,26 +52,29 @@ def search_spotify(query: str) -> json:
 
     return json.dumps(cleaned_results) 
 
-# # this code will be executed once the user clicks the "save playlist" button
-# def save_playlist(user: str, name: str, track_uris: list) -> dict:
-#     """Saves the created playlist to the user's profile"""
-#     playlist = sp.user_playlist_create(user=user, name=name, public=True, collaborative=False, description="")
-#     sp.playlist_add_items(playlist["id"], track_uris)
+# v2.0 CODE
+@tool
+def add_song(query: str):
+    """
+    Useful for when you need to search for a particular song and add it to the playlist.
+    Input should be a search query such as "80's rock" or "Laufey".
+    """
+    return playlist.search_and_add(query)
 
-#     return playlist
+@tool
+def add_similar_songs(genre: str = "", mood: str = ""):
+    """
+    Useful for when you want to add 3 more songs to the playlist that are similar to the
+    song that was most recently added. You can also search for and add similar songs that have a 
+    different genre or mood.
+    """
+    return playlist.add_recommendations(genre, mood)
 
-# # this function will be executed once the user clicks the "add track" button
-# def add_tracks(playlist: dict, track_uri: list):
-#     """
-#     Adds a track to a playlist
-    
-#     :param playlist: The playlist to add the tracks to.
-#     :type playlist: dict
-#     :param track_uri: URI of the track to be added to the playlist.
-#     :type track_uri: list
-#     """
-#     sp.playlist_add_items(playlist["id"], track_uri)
-    
-# results = search_spotify("rock")
-# print(results)
+@tool
+def check_playlist_status():
+    """
+    Useful to check what songs are currently in the playlist to ensure you aren't repeating artists
+    or songs with the same title. Always check this before finalizing.
+    """
+    return playlist.get_playlist_state()
 
