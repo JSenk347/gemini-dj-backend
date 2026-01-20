@@ -23,7 +23,7 @@ class PlaylistSession:
                 "img_url": img_url
             }
             self.current_tracks.append(track)
-            added.append(f"{track["track_name"]} by {track["artist_name"]}")
+            added.append(f"{track['track_name']} by {track['artist_name']}")
 
         return f"Added: {', '.join(added)}"
     
