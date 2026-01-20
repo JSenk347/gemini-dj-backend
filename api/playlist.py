@@ -48,7 +48,7 @@ class PlaylistSession:
             self.current_tracks.append(track)
             added.append(f"{track['track_name']} by {track['artist_name']}")
 
-        return f"Found and added recommendations based on previous track: {", ".join(added)}"
+        return f"Found and added recommendations based on previous track: {', '.join(added)}"
     
     def get_playlist_state(self):
         """Returns the current list of songs."""
