@@ -22,7 +22,6 @@ class PlaylistSession:
                 "artist_name": item["artists"][0]["name"],
                 "img_url": img_url
             }
-
             self.current_tracks.append(track)
             added.append(f"{track["track_name"]} by {track["artist_name"]}")
 
