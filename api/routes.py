@@ -44,10 +44,10 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         if not result.get("messages"):
             raise ValueError("Agent returned no messages.")
         
-        ai_message = result["output"] 
-        
-        if isinstance(ai_message, list): 
-             ai_message = ai_message[-1].content
+        last_message = result["messages"][-1]
+        raw_content = last_message.content
+
+        ai_message = extract_message(raw_content)
 
         current_tracks = current_session.current_tracks
 
