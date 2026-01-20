@@ -78,5 +78,5 @@ def build_agent(session_instance: PlaylistSession):
     #     ) # create the agent and compile the graph
     return create_react_agent(
         model=llm,
-        tools=tools,
+        tools=tools
     ) # create_react_agent is deprecated, yet stable. update to above line when needed

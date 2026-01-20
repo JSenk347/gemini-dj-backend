@@ -35,8 +35,8 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
         result = await agent.ainvoke(
             {"messages": [
-                ("user", request.message),
-                ("system", SYSTEM_PROMPT)
+                ("system", SYSTEM_PROMPT),
+                ("user", request.message)
             ]},
             config={"configurable": {"thread_id": request.session_id}}
         )
