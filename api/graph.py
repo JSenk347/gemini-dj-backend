@@ -36,20 +36,6 @@ You operate on a live playlist object. You do not need to "return" a list of son
 - Your final text response should be a friendly commentary describing the vibe you created and highlighting a few key tracks.
 """
 
-# def generate_pet_name(animal_type: str) -> str:
-#     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
-#     prompt_template_name = PromptTemplate( # defining a prompt template
-#         input_variables=["animal_type"],
-#         template="I have a {animal_type} and I want a cool name for it. suggest five cool names for my pet with no commentary"
-#     )
-#     output_parser = StrOutputParser()
-#     chain = prompt_template_name | llm | output_parser
-
-#     return chain.invoke({"animal_type": animal_type})
-
-# if __name__ == "__main__":
-#     print(generate_pet_name("dog"))
-
 def build_agent(session_instance: PlaylistSession):
     """
     Creates an agent that is bound to a specific playlist session.
