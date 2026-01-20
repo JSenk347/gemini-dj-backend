@@ -1,4 +1,3 @@
-import spotipy
 from typing import List, Dict
 
 NUM_RECS = 3

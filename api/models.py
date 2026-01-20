@@ -1,6 +1,12 @@
 # defines the data contracts, which are the formats of the requests that the frontend will send and receive to and from the backend
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+
+class Track(BaseModel):
+    track_uri: str
+    track_name: str
+    artist_name: str
+    img_url: Optional[str] = None # Handle cases where images might be missing
 
 class ChatRequest(BaseModel):
     message: str
@@ -8,7 +14,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     commentary: str 
-    playlist: List[List[str]] = [] # = [] so that if no playlist exists, there is no crash
+    playlist: List[Track] = [] # = [] so that if no playlist exists, there is no crash
 
 class SavePlaylistRequest(BaseModel):
     name: str
