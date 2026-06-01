@@ -1,6 +1,5 @@
 from typing import List, Dict
 
-NUM_RECS = 3
 MAX_PLAYLIST_SIZE = 10
 
 class PlaylistSession:
@@ -39,37 +38,6 @@ class PlaylistSession:
             added.append(f"{track['track_name']} by {track['artist_name']}")
 
         return f"Added: {', '.join(added)}" if added else "No new tracks added (duplicate or playlist full)."
-
-    def add_recommendations(self, genre: str = None, mood: str = None):
-        """Uses the last added track as a seed to find similar songs."""
-        if not self.current_tracks:
-            return "Error: Add a track first to get recommendations."
-        if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
-            return "Playlist is full (10 songs). No more tracks will be added."
-
-        seed_track_uri = self.current_tracks[-1]["track_uri"].split(":")[-1]
-        recs = self.sp.recommendations(seed_tracks=[seed_track_uri], limit=NUM_RECS)
-        existing = self._existing_uris()
-
-        added = []
-        for item in recs["tracks"]:
-            if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
-                break
-            uri = item["uri"]
-            if uri in existing:
-                continue
-            img_url = item["album"]["images"][0]["url"] if item["album"]["images"] else ""
-            track = {
-                "track_uri": uri,
-                "track_name": item["name"],
-                "artist_name": item["artists"][0]["name"],
-                "img_url": img_url
-            }
-            self.current_tracks.append(track)
-            existing.add(uri)
-            added.append(f"{track['track_name']} by {track['artist_name']}")
-
-        return f"Found and added recommendations: {', '.join(added)}" if added else "No new tracks added (duplicates or playlist full)."
 
     def get_playlist_state(self):
         """Returns the current list of songs."""
