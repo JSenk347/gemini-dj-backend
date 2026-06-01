@@ -1,10 +1,12 @@
 import json
 import logging
+import re
 import spotipy
 import os
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Dict
 
 from .models import ChatRequest, ChatResponse, AuthURLRequest, AccessTokenRequest, SavePlaylistRequest, UserDataRequest
@@ -52,6 +54,15 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
         return ChatResponse(commentary=ai_message, playlist=current_tracks)
     except Exception as e:
+        error_str = str(e)
+        if "RESOURCE_EXHAUSTED" in error_str:
+            retry_seconds = 60  # safe default
+            match = re.search(r"'retryDelay':\s*'(\d+)s'", error_str)
+            if not match:
+                match = re.search(r"retry in ([\d.]+)s", error_str, re.IGNORECASE)
+            if match:
+                retry_seconds = int(float(match.group(1))) + 1
+            return JSONResponse(status_code=429, content={"retry_after": retry_seconds})
         logger.error(f"Error in chat_endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
