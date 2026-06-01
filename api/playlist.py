@@ -1,11 +1,24 @@
 from typing import List, Dict
+import os
+import spotipy
+from spotipy import SpotifyClientCredentials
 
 MAX_PLAYLIST_SIZE = 10
 
 class PlaylistSession:
-    def __init__(self, sp_client):
-        self.sp = sp_client
+    def __init__(self):
+        # Own the auth manager so its token cache is reused across calls,
+        # but create a fresh spotipy.Spotify (new HTTP session) per search
+        # to avoid stale keep-alive connections being reused after Spotify
+        # closes them on the server side.
+        self._auth_manager = SpotifyClientCredentials(
+            client_id=os.environ.get("SPOTIPY_CLIENT_ID"),
+            client_secret=os.environ.get("SPOTIPY_CLIENT_SECRET")
+        )
         self.current_tracks: List[Dict] = []
+
+    def _sp(self) -> spotipy.Spotify:
+        return spotipy.Spotify(auth_manager=self._auth_manager)
 
     def _existing_uris(self):
         return {t["track_uri"] for t in self.current_tracks}
@@ -15,7 +28,7 @@ class PlaylistSession:
         if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
             return "Playlist is full (10 songs). No more tracks will be added."
 
-        results = self.sp.search(q=query, limit=limit, type="track")
+        results = self._sp().search(q=query, limit=limit, type="track")
         items = results["tracks"]["items"]
         existing = self._existing_uris()
 

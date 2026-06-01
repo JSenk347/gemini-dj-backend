@@ -3,7 +3,6 @@ import logging
 import spotipy
 import os
 from spotipy.oauth2 import SpotifyOAuth #Authenticates the USER
-from spotipy import SpotifyClientCredentials #for server-side searching
 from langchain_core.messages import ToolMessage
 from fastapi import APIRouter, HTTPException
 from typing import Dict
@@ -17,8 +16,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 active_sessions: Dict[str, PlaylistSession] = {}
-# generic spotify client for agent use
-server_sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -28,7 +25,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     try:
         if request.session_id not in active_sessions:
             logger.info(f"Creating new PlaylistSession for {request.session_id}")
-            active_sessions[request.session_id] = PlaylistSession(sp_client=server_sp)
+            active_sessions[request.session_id] = PlaylistSession()
 
         current_session = active_sessions[request.session_id]
         agent = build_agent(current_session)
