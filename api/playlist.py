@@ -1,56 +1,79 @@
 from typing import List, Dict
 
 NUM_RECS = 3
+MAX_PLAYLIST_SIZE = 10
 
 class PlaylistSession:
     def __init__(self, sp_client):
         self.sp = sp_client
         self.current_tracks: List[Dict] = []
 
+    def _existing_uris(self):
+        return {t["track_uri"] for t in self.current_tracks}
+
     def search_and_add(self, query: str, limit: int = 1):
-        """Searches Spotify and adds the tops result to the playlist."""
+        """Searches Spotify and adds the top result to the playlist."""
+        if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
+            return "Playlist is full (10 songs). No more tracks will be added."
+
         results = self.sp.search(q=query, limit=limit, type="track")
         items = results["tracks"]["items"]
+        existing = self._existing_uris()
 
         added = []
         for item in items:
-            img_url = item["album"]["images"][0]["url"] if len(item["album"]["images"]) > 0 else ""
+            if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
+                break
+            uri = item["uri"]
+            if uri in existing:
+                continue
+            img_url = item["album"]["images"][0]["url"] if item["album"]["images"] else ""
             track = {
-                "track_uri": item["uri"],
+                "track_uri": uri,
                 "track_name": item["name"],
                 "artist_name": item["artists"][0]["name"],
                 "img_url": img_url
             }
             self.current_tracks.append(track)
+            existing.add(uri)
             added.append(f"{track['track_name']} by {track['artist_name']}")
 
-        return f"Added: {', '.join(added)}"
-    
+        return f"Added: {', '.join(added)}" if added else "No new tracks added (duplicate or playlist full)."
+
     def add_recommendations(self, genre: str = None, mood: str = None):
         """Uses the last added track as a seed to find similar songs."""
         if not self.current_tracks:
             return "Error: Add a track first to get recommendations."
-        
-        seed_track_uri = self.current_tracks[-1]["track_uri"].split(":")[-1] #extracting the id of the song
+        if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
+            return "Playlist is full (10 songs). No more tracks will be added."
 
+        seed_track_uri = self.current_tracks[-1]["track_uri"].split(":")[-1]
         recs = self.sp.recommendations(seed_tracks=[seed_track_uri], limit=NUM_RECS)
+        existing = self._existing_uris()
 
         added = []
         for item in recs["tracks"]:
-            img_url = item["album"]["images"][0]["url"] if len(item["album"]["images"]) > 0 else ""
+            if len(self.current_tracks) >= MAX_PLAYLIST_SIZE:
+                break
+            uri = item["uri"]
+            if uri in existing:
+                continue
+            img_url = item["album"]["images"][0]["url"] if item["album"]["images"] else ""
             track = {
-                "track_uri": item["uri"],
+                "track_uri": uri,
                 "track_name": item["name"],
                 "artist_name": item["artists"][0]["name"],
                 "img_url": img_url
             }
             self.current_tracks.append(track)
+            existing.add(uri)
             added.append(f"{track['track_name']} by {track['artist_name']}")
 
-        return f"Found and added recommendations based on previous track: {', '.join(added)}"
-    
+        return f"Found and added recommendations: {', '.join(added)}" if added else "No new tracks added (duplicates or playlist full)."
+
     def get_playlist_state(self):
         """Returns the current list of songs."""
         if not self.current_tracks:
             return "The playlist is currently empty."
-        return "\n".join([f"{t['name']} - {t['artist']}" for t in self.current_tracks])
+        lines = [f"{t['track_name']} - {t['artist_name']}" for t in self.current_tracks]
+        return f"{len(self.current_tracks)}/10 songs:\n" + "\n".join(lines)
