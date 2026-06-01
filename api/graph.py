@@ -50,7 +50,7 @@ def build_agent(session_instance: PlaylistSession):
         return session_instance.get_playlist_state()
 
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.5-flash",
         temperature=0.3 #play around with this val. -> 1 is TOTALLY random, -> 0 is NO randomness
     ) #initialize the gemini model
     tools = [add_song, check_playlist_status] #define the tools list
